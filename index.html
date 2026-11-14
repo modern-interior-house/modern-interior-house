@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>সিলেট ইন্টেরিয়র প্রজেক্ট - হিসাব নিকাশ</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 font-sans pb-16">
+
+    <div id="app" class="max-w-md mx-auto min-h-screen bg-white shadow-lg flex flex-col justify-between relative">
+        
+        <!-- ১. অথেন্টিকেশন পেজ -->
+        <div id="auth-section" class="p-6">
+            <div class="text-center mb-6 mt-10">
+                <h1 class="text-2xl font-bold text-emerald-800">সিলেট ইন্টেরিয়র প্রজেক্ট</h1>
+                <p class="text-sm text-gray-600">পার্টনারদের খরচের হিসাব ও ক্যাশ ম্যানেজমেন্ট</p>
+            </div>
+
+            <div class="flex border-b mb-6">
+                <button id="tab-login" onclick="switchTab('login')" class="flex-1 py-2 font-semibold text-emerald-800 border-b-2 border-emerald-800">লগইন</button>
+                <button id="tab-signup" onclick="switchTab('signup')" class="flex-1 py-2 font-semibold text-gray-400">নতুন অ্যাকাউন্ট</button>
+            </div>
+
+            <!-- লগইন ফর্ম -->
+            <form id="login-form" class="space-y-4">
+                <div>
+                    <label class="block text-sm text-gray-600 mb-1">ইমেইল ঠিকানা</label>
+                    <input type="email" id="login-email" required class="w-full border rounded-lg p-2.5 focus:ring-2 focus:ring-emerald-600 outline-none">
+                </div>
+                <div>
+                    <label class="block text-sm text-gray-600 mb-1">পাসওয়ার্ড</label>
+                    <input type="password" id="login-password" required class="w-full border rounded-lg p-2.5 focus:ring-2 focus:ring-emerald-600 outline-none">
+                </div>
+                <button type="submit" class="w-full bg-emerald-800 text-white py-3 rounded-lg font-semibold hover:bg-emerald-900">প্রবেশ করুন</button>
+            </form>
+
+            <!-- সাইন-আপ ফর্ম -->
+            <form id="signup-form" class="space-y-4 hidden">
+                <div>
+                    <label class="block text-sm text-gray-600 mb-1">আপনার নাম (যেমন: Opurbo / Yusuf / Shumon)</label>
+                    <input type="text" id="signup-name" required class="w-full border rounded-lg p-2.5 focus:ring-2 focus:ring-emerald-600 outline-none">
+                </div>
+                <div>
+                    <label class="block text-sm text-gray-600 mb-1">ইমেইল ঠিকানা</label>
+                    <input type="email" id="signup-email" required class="w-full border rounded-lg p-2.5 focus:ring-2 focus:ring-emerald-600 outline-none">
+                </div>
+                <div>
+                    <label class="block text-sm text-gray-600 mb-1">পাসওয়ার্ড (কমপক্ষে ৬ ডিজিট)</label>
+                    <input type="password" id="signup-password" required minlength="6" class="w-full border rounded-lg p-2.5 focus:ring-2 focus:ring-emerald-600 outline-none">
+                </div>
+                <button type="submit" class="w-full bg-emerald-800 text-white py-3 rounded-lg font-semibold hover:bg-emerald-900">অ্যাকাউন্ট তৈরি করুন</button>
+            </form>
+        </div>
+
+        <!-- ২. মূল ড্যাশবোর্ড (লগইন করার পর) -->
+        <div id="dashboard-section" class="hidden flex-1 flex flex-col">
+            
+            <!-- টপ হেডার -->
+            <div class="bg-emerald-900 text-white p-4 rounded-b-2xl shadow-md">
+                <div class="flex justify-between items-center mb-2">
+                    <span class="text-xs bg-emerald-800 px-2 py-1 rounded">প্রজেক্ট</span>
+                    <span class="text-sm font-semibold" id="user-display">লোড হচ্ছে...</span>
+                    <button id="logout-btn" class="text-xs bg-red-600 px-2 py-1 rounded hover:bg-red-700">লগআউট</button>
+                </div>
+                <h2 class="text-xl font-bold mb-3">সিলেট ইন্টেরিয়র প্রজেক্ট</h2>
+                
+                <!-- সামারি কার্ড -->
+                <div class="bg-emerald-800 p-3 rounded-xl">
+                    <p class="text-xs text-emerald-200">তিনজনের হাতে মোট টাকা</p>
+                    <p class="text-2xl font-bold my-1" id="total-cash-in-hand">৳ ০</p>
+                    <div class="border-t border-emerald-700 pt-2 mt-2 space-y-1 text-xs">
+                        <div class="flex justify-between"><span>ক্লায়েন্ট থেকে পাওয়া:</span> <span id="summary-client" class="font-bold">৳ ০</span></div>
+                        <div class="flex justify-between"><span>প্রজেক্টের কেনাকাটা:</span> <span id="summary-project-exp" class="font-bold">৳ ০</span></div>
+                        <div class="flex justify-between"><span>ব্যক্তিগত খরচ:</span> <span id="summary-personal-exp" class="font-bold">৳ ০</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- অ্যাকশন বাটনসমূহ -->
+            <div class="grid grid-cols-3 gap-2 p-4">
+                <button onclick="openModal('expense')" class="bg-white border border-emerald-200 p-3 rounded-xl text-center shadow-sm hover:bg-emerald-50">
+                    <div class="w-8 h-8 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-1 font-bold">-</div>
+                    <span class="text-xs font-semibold text-gray-700">খরচ</span>
+                </button>
+                <button onclick="openModal('client')" class="bg-white border border-emerald-200 p-3 rounded-xl text-center shadow-sm hover:bg-emerald-50">
+                    <div class="w-8 h-8 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-1 font-bold">+</div>
+                    <span class="text-xs font-semibold text-gray-700">ক্লায়েন্ট থেকে</span>
+                </button>
+                <button onclick="openModal('transfer')" class="bg-white border border-emerald-200 p-3 rounded-xl text-center shadow-sm hover:bg-emerald-50">
+                    <div class="w-8 h-8 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-1 font-bold">→</div>
+                    <span class="text-xs font-semibold text-gray-700">টাকা দিলাম</span>
+                </button>
+            </div>
+
+            <!-- পার্টনারদের হিসাব লিস্ট -->
+            <div class="px-4 mb-4">
+                <h3 class="font-semibold text-sm mb-2 text-gray-700">কার কাছে কত টাকা</h3>
+                <div id="partners-ledger-container" class="space-y-3">
+                    <!-- ডাইনামিক পার্টনার কার্ড এখানে আসবে -->
+                </div>
+            </div>
+
+            <!-- সাম্প্রতিক লেনদেন -->
+            <div class="px-4 flex-1 pb-16">
+                <div class="flex justify-between items-center mb-2">
+                    <h3 class="font-semibold text-sm text-gray-700">সর্বশেষ লেনদেন</h3>
+                </div>
+                <div id="recent-transactions" class="space-y-2">
+                    <p class="text-xs text-gray-400 text-center py-4">কোনো হিসাব পাওয়া যায়নি</p>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- ৩. লেনদেন যোগ করার পপআপ মোডাল -->
+        <div id="transaction-modal" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center p-4 z-50">
+            <div class="bg-white w-full max-w-sm rounded-2xl p-4 shadow-xl">
+                <div class="flex justify-between items-center mb-3 border-b pb-2">
+                    <h3 id="modal-title" class="font-bold text-emerald-800">নতুন হিসাব যুক্ত করুন</h3>
+                    <button onclick="closeModal()" class="text-gray-400 hover:text-black font-bold">✕</button>
+                </div>
+                <form id="modal-form" class="space-y-3">
+                    <input type="hidden" id="tx-mode" value="expense">
+                    
+                    <div id="expense-type-box" class="flex gap-2">
+                        <label class="flex-1 border p-2 rounded-lg text-center cursor-pointer text-xs font-medium bg-gray-50">
+                            <input type="radio" name="expense_scope" value="project" checked class="mr-1"> প্রজেক্ট খরচ
+                        </label>
+                        <label class="flex-1 border p-2 rounded-lg text-center cursor-pointer text-xs font-medium bg-gray-50">
+                            <input type="radio" name="expense_scope" value="personal" class="mr-1"> ব্যক্তিগত খরচ
+                        </label>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs text-gray-600 mb-1">বিবরণ</label>
+                        <input type="text" id="tx-desc" required placeholder="যেমন: হার্ডওয়্যার ও ফিটিংস / নাস্তা" class="w-full border rounded-lg p-2 text-sm outline-none focus:border-emerald-600">
+                    </div>
+
+                    <div class="flex gap-2">
+                        <div class="w-1/2">
+                            <label class="block text-xs text-gray-600 mb-1">টাকার পরিমাণ (৳)</label>
+                            <input type="number" id="tx-amount" required min="1" placeholder="০" class="w-full border rounded-lg p-2 text-sm outline-none focus:border-emerald-600">
+                        </div>
+                        <div class="w-1/2" id="category-box">
+                            <label class="block text-xs text-gray-600 mb-1">ক্যাটাগরি</label>
+                            <select id="tx-category" class="w-full border rounded-lg p-2 text-sm bg-white outline-none">
+                                <option value="হার্ডওয়্যার ও ফিটিংস">হার্ডওয়্যার ও ফিটিংস</option>
+                                <option value="মিস্ত্রি ও লেবার বিল">মিস্ত্রি ও লেবার বিল</option>
+                                <option value="খাবার ও আপ্যায়ন">খাবার ও আপ্যায়ন</option>
+                                <option value="যাতায়াত ও পরিবহন">যাতায়াত ও পরিবহন</option>
+                                <option value="অন্যান্য">অন্যান্য</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="w-full bg-emerald-700 text-white py-2.5 rounded-lg text-sm font-semibold hover:bg-emerald-800 mt-2">সেভ করুন</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- ৪. ফুটার নেভিগেশন বার -->
+        <div id="footer-nav" class="hidden fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-white border-t flex justify-around py-2 shadow-lg">
+            <button class="flex flex-col items-center text-emerald-800">
+                <span class="text-lg">🏠</span>
+                <span class="text-[10px] font-semibold">হোম</span>
+            </button>
+            <button onclick="alert('খাতা ও রিপোর্ট ফিচার খুব শীঘ্রই যুক্ত করা হবে!')" class="flex flex-col items-center text-gray-400">
+                <span class="text-lg">📋</span>
+                <span class="text-[10px]">খাতা</span>
+            </button>
+            <button onclick="alert('রিপোর্ট ফিচার খুব শীঘ্রই যুক্ত করা হবে!')" class="flex flex-col items-center text-gray-400">
+                <span class="text-lg">📊</span>
+                <span class="text-[10px]">রিপোর্ট</span>
+            </button>
+        </div>
+
+    </div>
+
+    <!-- Firebase SDK স্ক্রিপ্ট -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, deleteDoc, doc, query, orderBy, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        // আপনার ফায়ারবেস কনফিগারেশন (আপনার ছবি থেকে বসানো হয়েছে)
+        const firebaseConfig = {
+            apiKey: "AIzaSyCUj8lI2MacQ1lpul2bnS7fL...", // আপনার আসল apiKey এখানে দেওয়া আছে
+            authDomain: "modern-interior-house.firebaseapp.com",
+            projectId: "modern-interior-house",
+            storageBucket: "modern-interior-house.appspot.com",
+            messagingSenderId: "506540243680",
+            appId: "1:506540243680:web:d53af441bab...",
+            measurementId: "G-0RX8GQ9WKN"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        let unsubscribeLedger = null;
+
+        const formatBDT = (num) => `৳ ${Number(num).toLocaleString('bn-BD')}`;
+
+        window.switchTab = function(tab) {
+            if(tab === 'login') {
+                document.getElementById('login-form').classList.remove('hidden');
+                document.getElementById('signup-form').classList.add('hidden');
+                document.getElementById('tab-login').className = "flex-1 py-2 font-semibold text-emerald-800 border-b-2 border-emerald-800";
+                document.getElementById('tab-signup').className = "flex-1 py-2 font-semibold text-gray-400";
+            } else {
+                document.getElementById('signup-form').classList.remove('hidden');
+                document.getElementById('login-form').classList.add('hidden');
+                document.getElementById('tab-signup').className = "flex-1 py-2 font-semibold text-emerald-800 border-b-2 border-emerald-800";
+                document.getElementById('tab-login').className = "flex-1 py-2 font-semibold text-gray-400";
+            }
+        }
+
+        document.getElementById('signup-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const name = document.getElementById('signup-name').value.trim();
+            const email = document.getElementById('signup-email').value;
+            const password = document.getElementById('signup-password').value;
+            try {
+                const userCred = await createUserWithEmailAndPassword(auth, email, password);
+                await updateProfile(userCred.user, { displayName: name });
+            } catch (error) {
+                alert("ত্রুটি: " + error.message);
+            }
+        });
+
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            try {
+                await signInWithEmailAndPassword(auth, email, password);
+            } catch (error) {
+                alert("লগইন ত্রুটি: সঠিক তথ্য দিন।");
+            }
+        });
+
+        document.getElementById('logout-btn').addEventListener('click', async () => {
+            if (unsubscribeLedger) unsubscribeLedger();
+            await signOut(auth);
+        });
+
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                document.getElementById('auth-section').classList.add('hidden');
+                document.getElementById('dashboard-section').classList.remove('hidden');
+                document.getElementById('footer-nav').classList.remove('hidden');
+                document.getElementById('user-display').innerText = `হ্যালো, ${user.displayName || user.email.split('@')[0]}`;
+                listenData(user.uid);
+            } else {
+                document.getElementById('auth-section').classList.remove('hidden');
+                document.getElementById('dashboard-section').classList.add('hidden');
+                document.getElementById('footer-nav').classList.add('hidden');
+            }
+        });
+
+        window.openModal = function(mode) {
+            const modal = document.getElementById('transaction-modal');
+            const title = document.getElementById('modal-title');
+            const modeInput = document.getElementById('tx-mode');
+            const expenseBox = document.getElementById('expense-type-box');
+            const categoryBox = document.getElementById('category-box');
+
+            modeInput.value = mode;
+            modal.classList.remove('hidden');
+
+            if(mode === 'expense') {
+                title.innerText = "নতুন খরচ যোগ করুন";
+                expenseBox.classList.remove('hidden');
+                categoryBox.classList.remove('hidden');
+            } else if(mode === 'client') {
+                title.innerText = "ক্লায়েন্ট থেকে টাকা পাওয়া";
+                expenseBox.classList.add('hidden');
+                categoryBox.classList.add('hidden');
+            } else if(mode === 'transfer') {
+                title.innerText = "পার্টনারকে টাকা দেওয়া";
+                expenseBox.classList.add('hidden');
+                categoryBox.classList.add('hidden');
+            }
+        }
+
+        window.closeModal = function() {
+            document.getElementById('transaction-modal').classList.add('hidden');
+            document.getElementById('modal-form').reset();
+        }
+
+        document.getElementById('modal-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const mode = document.getElementById('tx-mode').value;
+            const desc = document.getElementById('tx-desc').value.trim();
+            const amount = Number(document.getElementById('tx-amount').value);
+            const user = auth.currentUser;
+
+            let data = {
+                desc, amount,
+                partnerName: user.displayName || user.email.split('@')[0],
+                uid: user.uid,
+                createdAt: serverTimestamp()
+            };
+
+            if(mode === 'expense') {
+                const scope = document.querySelector('input[name="expense_scope"]:checked').value;
+                data.type = scope === 'project' ? 'project_expense' : 'personal_expense';
+                data.category = document.getElementById('tx-category').value;
+            } else if(mode === 'client') {
+                data.type = 'client_deposit';
+            } else if(mode === 'transfer') {
+                data.type = 'money_transfer';
+            }
+
+            try {
+                await addDoc(collection(db, "sylhet_interior_transactions"), data);
+                closeModal();
+            } catch (error) {
+                alert("সেভ করতে সমস্যা হয়েছে: " + error.message);
+            }
+        });
+
+        window.deleteTx = async (id) => {
+            if(confirm("এই হিসাবটি মুছে ফেলতে চান?")) {
+                await deleteDoc(doc(db, "sylhet_interior_transactions", id));
+            }
+        }
+
+        function listenData(currentUid) {
+            const q = query(collection(db, "sylhet_interior_transactions"), orderBy("createdAt", "desc"));
+            
+            unsubscribeLedger = onSnapshot(q, (snapshot) => {
+                let totalClient = 0;
+                let totalProjExp = 0;
+                let totalPersExp = 0;
+                
+                let partnerData = {};
+
+                let recentHtml = "";
+
+                snapshot.forEach((docSnap) => {
+                    const d = docSnap.data();
+                    const pName = d.partnerName;
+
+                    if(!partnerData[pName]) {
+                        partnerData[pName] = { client: 0, projExp: 0, persExp: 0, transfer: 0 };
+                    }
+
+                    if(d.type === 'client_deposit') {
+                        totalClient += d.amount;
+                        partnerData[pName].client += d.amount;
+                    } else if(d.type === 'project_expense') {
+                        totalProjExp += d.amount;
+                        partnerData[pName].projExp += d.amount;
+                    } else if(d.type === 'personal_expense') {
+                        totalPersExp += d.amount;
+                        partnerData[pName].persExp += d.amount;
+                    } else if(d.type === 'money_transfer') {
+                        partnerData[pName].transfer += d.amount;
+                    }
+
+                    recentHtml += `
+                        <div class="bg-white p-3 rounded-xl border shadow-sm flex justify-between items-center text-sm">
+                            <div>
+                                <span class="font-semibold text-gray-800">${d.desc}</span>
+                                <p class="text-[11px] text-gray-400">পার্টনার: ${pName} | ক্যাটাগরি: ${d.category || 'সাধারণ'}</p>
+                            </div>
+                            <div class="text-right flex items-center gap-2">
+                                <span class="font-bold ${d.type.includes('expense') ? 'text-red-600' : 'text-emerald-600'}">
+                                    ${d.type.includes('expense') ? '-' : '+'}${formatBDT(d.amount)}
+                                </span>
+                                ${d.uid === currentUid ? `<button onclick="deleteTx('${docSnap.id}')" class="text-gray-300 hover:text-red-600 text-xs">✕</button>` : ''}
+                            </div>
+                        </div>
+                    `;
+                });
+
+                const totalCash = totalClient - totalProjExp - totalPersExp;
+                document.getElementById('total-cash-in-hand').innerText = formatBDT(totalCash);
+                document.getElementById('summary-client').innerText = formatBDT(totalClient);
+                document.getElementById('summary-project-exp').innerText = formatBDT(totalProjExp);
+                document.getElementById('summary-personal-exp').innerText = formatBDT(totalPersExp);
+
+                let partnerHtml = "";
+                for(let name in partnerData) {
+                    const p = partnerData[name];
+                    const pCash = p.client + p.transfer - p.projExp - p.persExp;
+                    partnerHtml += `
+                        <div class="bg-gray-50 border p-3 rounded-xl shadow-sm">
+                            <div class="flex justify-between items-center mb-2 border-b pb-1.5">
+                                <span class="font-bold text-gray-800 text-sm">👤 ${name}</span>
+                                <span class="text-xs bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full font-semibold">হাতে আছে: ${formatBDT(pCash)}</span>
+                            </div>
+                            <div class="grid grid-cols-2 gap-1 text-[11px] text-gray-600">
+                                <div>ক্লায়েন্ট থেকে: <span class="font-bold text-emerald-700">${formatBDT(p.client)}</span></div>
+                                <div>প্রজেক্ট খরচ: <span class="font-bold text-red-600">${formatBDT(p.projExp)}</span></div>
+                                <div>ব্যক্তিগত খরচ: <span class="font-bold text-red-600">${formatBDT(p.persExp)}</span></div>
+                                <div>টাকা দেওয়া: <span class="font-bold text-blue-600">${formatBDT(p.transfer)}</span></div>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                document.getElementById('partners-ledger-container').innerHTML = partnerHtml || `<p class="text-xs text-gray-400 text-center">কোনো পার্টনারের ডাটা নেই</p>`;
+                document.getElementById('recent-transactions').innerHTML = recentHtml || `<p class="text-xs text-gray-400 text-center py-4">কোনো হিসাব পাওয়া যায়নি</p>`;
+            });
+        }
+    </script>
+</body>
+</html>
