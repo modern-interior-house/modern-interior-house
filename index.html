@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>সিলেট ইন্টেরিয়র প্রজেক্ট - হিসাব নিকাশ</title>
+    <title>প্রজেক্ট হিসাব নিকাশ</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-100 font-sans pb-16">
@@ -13,8 +13,8 @@
         <!-- ১. অথেন্টিকেশন পেজ -->
         <div id="auth-section" class="p-6">
             <div class="text-center mb-6 mt-10">
-                <h1 class="text-2xl font-bold text-emerald-800">সিলেট ইন্টেরিয়র প্রজেক্ট</h1>
-                <p class="text-sm text-gray-600">পার্টনারদের খরচের হিসাব ও ক্যাশ ম্যানেজমেন্ট</p>
+                <h1 class="text-2xl font-bold text-emerald-800" id="app-title-display">প্রজেক্ট হিসাব নিকাশ</h1>
+                <p class="text-sm text-gray-600">খরচের হিসাব ও ক্যাশ ম্যানেজমেন্ট</p>
             </div>
 
             <div class="flex border-b mb-6">
@@ -38,8 +38,12 @@
             <!-- সাইন-আপ ফর্ম -->
             <form id="signup-form" class="space-y-4 hidden">
                 <div>
-                    <label class="block text-sm text-gray-600 mb-1">আপনার নাম (যেমন: Opurbo / Yusuf / Shumon)</label>
-                    <input type="text" id="signup-name" required class="w-full border rounded-lg p-2.5 focus:ring-2 focus:ring-emerald-600 outline-none">
+                    <label class="block text-sm text-gray-600 mb-1">প্রজেক্টের নাম (যেমন: ঢাকা বাড়ি / সিলেট ইন্টেরিয়র)</label>
+                    <input type="text" id="signup-project-name" required class="w-full border rounded-lg p-2.5 focus:ring-2 focus:ring-emerald-600 outline-none" placeholder="আপনার প্রজেক্টের নাম দিন">
+                </div>
+                <div>
+                    <label class="block text-sm text-gray-600 mb-1">আপনার নাম</label>
+                    <input type="text" id="signup-name" required class="w-full border rounded-lg p-2.5 focus:ring-2 focus:ring-emerald-600 outline-none" placeholder="আপনার নিজের নাম">
                 </div>
                 <div>
                     <label class="block text-sm text-gray-600 mb-1">ইমেইল ঠিকানা</label>
@@ -63,11 +67,11 @@
                     <span class="text-sm font-semibold" id="user-display">লোড হচ্ছে...</span>
                     <button id="logout-btn" class="text-xs bg-red-600 px-2 py-1 rounded hover:bg-red-700">লগআউট</button>
                 </div>
-                <h2 class="text-xl font-bold mb-3">সিলেট ইন্টেরিয়র প্রজেক্ট</h2>
+                <h2 class="text-xl font-bold mb-3" id="header-project-title">প্রজেক্ট</h2>
                 
                 <!-- সামারি কার্ড -->
                 <div class="bg-emerald-800 p-3 rounded-xl">
-                    <p class="text-xs text-emerald-200">তিনজনের হাতে মোট টাকা</p>
+                    <p class="text-xs text-emerald-200">সবার হাতে মোট টাকা</p>
                     <p class="text-2xl font-bold my-1" id="total-cash-in-hand">৳ ০</p>
                     <div class="border-t border-emerald-700 pt-2 mt-2 space-y-1 text-xs">
                         <div class="flex justify-between"><span>ক্লায়েন্ট থেকে পাওয়া:</span> <span id="summary-client" class="font-bold">৳ ০</span></div>
@@ -181,11 +185,11 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, deleteDoc, doc, query, orderBy, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, deleteDoc, doc, query, orderBy, onSnapshot, serverTimestamp, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        // আপনার ফায়ারবেস কনফিগারেশন (আপনার ছবি থেকে বসানো হয়েছে)
+        // আপনার ফায়ারবেস কনফিগারেশন (সঠিক apiKey এখানে বসিয়ে নিন)
         const firebaseConfig = {
-            apiKey: "AIzaSyCUj8lI2MacQ1lpul2bnS7fL...", // আপনার আসল apiKey এখানে দেওয়া আছে
+            apiKey: "AIzaSyCUj8Il2MacQ11lpul2bnS7flZVkoWqjjI",
             authDomain: "modern-interior-house.firebaseapp.com",
             projectId: "modern-interior-house",
             storageBucket: "modern-interior-house.appspot.com",
@@ -217,12 +221,18 @@
 
         document.getElementById('signup-form').addEventListener('submit', async (e) => {
             e.preventDefault();
+            const projectName = document.getElementById('signup-project-name').value.trim();
             const name = document.getElementById('signup-name').value.trim();
             const email = document.getElementById('signup-email').value;
             const password = document.getElementById('signup-password').value;
             try {
                 const userCred = await createUserWithEmailAndPassword(auth, email, password);
                 await updateProfile(userCred.user, { displayName: name });
+                
+                // প্রজেক্টের নাম ফায়ারস্টোরে সেভ করে রাখা
+                await setDoc(doc(db, "project_settings", "info"), {
+                    projectName: projectName
+                });
             } catch (error) {
                 alert("ত্রুটি: " + error.message);
             }
@@ -235,7 +245,7 @@
             try {
                 await signInWithEmailAndPassword(auth, email, password);
             } catch (error) {
-                alert("লগইন ত্রুটি: সঠিক তথ্য দিন।");
+                alert("লগইন ত্রুটি: সঠিক ইমেইল ও পাসওয়ার্ড দিন।");
             }
         });
 
@@ -244,12 +254,23 @@
             await signOut(auth);
         });
 
-        onAuthStateChanged(auth, (user) => {
+        onAuthStateChanged(auth, async (user) => {
             if (user) {
                 document.getElementById('auth-section').classList.add('hidden');
                 document.getElementById('dashboard-section').classList.remove('hidden');
                 document.getElementById('footer-nav').classList.remove('hidden');
                 document.getElementById('user-display').innerText = `হ্যালো, ${user.displayName || user.email.split('@')[0]}`;
+                
+                // প্রজেক্টের নাম লোড করা
+                try {
+                    const docSnap = await getDoc(doc(db, "project_settings", "info"));
+                    if (docSnap.exists() && docSnap.data().projectName) {
+                        const pName = docSnap.data().projectName;
+                        document.getElementById('header-project-title').innerText = pName;
+                        document.getElementById('app-title-display').innerText = pName;
+                    }
+                } catch(e) { console.log(e); }
+
                 listenData(user.uid);
             } else {
                 document.getElementById('auth-section').classList.remove('hidden');
